@@ -79,3 +79,12 @@ print('Model Saved')
 classifier.save_weights('models/model-bw.h5')
 print('Weights saved')
 
+# Save class labels to label.txt
+class_names = training_set.class_indices
+labels = list(class_names.keys())
+
+with open("label.txt", "w") as label_file:
+    for label in labels:
+        label_file.write(label + "\n")
+
+print('Class labels saved to label.txt')
