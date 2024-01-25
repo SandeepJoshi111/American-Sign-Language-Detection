@@ -69,7 +69,9 @@ while True:
 
     # Apply adaptive thresholding
     th3 = cv2.adaptiveThreshold(blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 11, 2)
-
+    kernel = np.ones((2, 2), np.uint8)
+    th3 = cv2.erode(th3, kernel, iterations=1)
+    th3 = cv2.dilate(th3, kernel, iterations=1)
     ret, res = cv2.threshold(th3, 70, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
     # Display the frame with ROI and predicted class label
