@@ -8,7 +8,7 @@ if not os.path.exists("datanum"):
 if not os.path.exists("datanum/train"):
     os.makedirs("datanum/train")
 if not os.path.exists("datanum/test"):
-    os.makedirs("data/test")
+    os.makedirs("datanum/test")
 
 # Create directories for each class in training and testing
 for i in range(10):
