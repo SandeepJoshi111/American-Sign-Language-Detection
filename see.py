@@ -2,26 +2,49 @@ import cv2
 import numpy as np
 from keras.models import model_from_json
 from keras.preprocessing import image
-
-# Load the saved model architecture from JSON file
-model_path = "model-bw.json"
+# Load the model architecture from JSON files
+model_path = "model/model-bw.json"
 with open(model_path, 'r') as json_file:
     loaded_model_json = json_file.read()
 
-# Create the model from the loaded JSON
+model_path_dru = "model/model-dru.json"
+with open(model_path_dru, 'r') as json_file:
+    loaded_model_json_dru = json_file.read()
+
+model_path_asmnt = "model/model-asmnt.json"
+with open(model_path_asmnt, 'r') as json_file:
+    loaded_model_json_asmnt = json_file.read()
+
+# Load the models from JSON
 loaded_model = model_from_json(loaded_model_json)
+loaded_model_dru = model_from_json(loaded_model_json_dru)
+loaded_model_asmnt = model_from_json(loaded_model_json_asmnt)
 
-# Load weights into the model
-loaded_model.load_weights("model-bw.h5")
-print(loaded_model.input_shape)
+# Load weights into the models
+loaded_model.load_weights("model/model-bw.h5")
+loaded_model_dru.load_weights("model/model-dru.h5")
+loaded_model_asmnt.load_weights("model/model-asmnt.h5")
 
-# Compile the model
+# Compile the models
 loaded_model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+loaded_model_dru.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+loaded_model_asmnt.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
-# Load class names from label.txt
-label_path = "label.txt"
-with open(label_path, "r") as label_file:
+# Load class names
+with open("model/label.txt", "r") as label_file:
     class_names = label_file.read().splitlines()
+
+with open("model/label-dru.txt", "r") as label_file_dru:
+    class_names_dru = label_file_dru.read().splitlines()
+
+with open("model/label-asmnt.txt", "r") as label_file_asmnt:
+    class_names_asmnt = label_file_asmnt.read().splitlines()
+
+# Load class names from label-dru.txt for the second model
+label_path_asmnt = "model/label-asmnt.txt"
+with open(label_path_asmnt, "r") as label_file_asmnt:
+    class_names_asmnt = label_file_asmnt.read().splitlines()
+
 
 # Set up the video capture
 cap = cv2.VideoCapture(0)
@@ -34,6 +57,13 @@ frame_size = 900
 symbol_counters = {label: 0 for label in class_names}
 word = ""
 sentence = ""
+current_model="BW"
+
+def predict_alphabet(model, class_names, img_array):
+    predictions = model.predict(img_array)
+    predicted_class_index = np.argmax(predictions[0])
+    predicted_class_label = class_names[predicted_class_index]
+    return predicted_class_label
 
 while True:
     # Read a frame from the webcam
@@ -83,12 +113,26 @@ while True:
     img_array = np.expand_dims(img_array, axis=0)
     img_array /= 255.0
     predictions = loaded_model.predict(img_array)
+    if current_model == "BW":
+        predictions = loaded_model.predict(img_array)
+    elif current_model == "DRU":
+        predictions = loaded_model_dru.predict(img_array)
+    else:
+        predictions = loaded_model_asmnt.predict(img_array)
 
     # Get the predicted class index
     predicted_class_index = np.argmax(predictions[0])
 
     # Get the predicted class label
     predicted_class_label = class_names[predicted_class_index]
+
+
+    if current_model == "BW":
+        predicted_class_label = predict_alphabet(loaded_model, class_names, img_array)
+    elif current_model == "DRU":
+        predicted_class_label = predict_alphabet(loaded_model_dru, class_names_dru, img_array)
+    else:
+        predicted_class_label = predict_alphabet(loaded_model_asmnt, class_names_asmnt, img_array)
 
     # Increment the symbol counter
     symbol_counters[predicted_class_label] += 1
@@ -97,9 +141,10 @@ while True:
     cv2.putText(frame_resized, f"Predicted Sign: {predicted_class_label}", (10, frame_size - int(box_height) + 40), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
 
     print(symbol_counters[predicted_class_label])
+    
     # Update the word if the count is greater than 30
-    if symbol_counters[predicted_class_label] >= 50:
-        if predicted_class_label == "0" and word !="":
+    if symbol_counters[predicted_class_label] >= 30:
+        if predicted_class_label == "blank" and word !="":
             sentence += word +" "
             word = ""  # Clear out Word
             for label in class_names:

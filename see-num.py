@@ -100,13 +100,12 @@ while True:
 
     print(symbol_counters[predicted_class_label])
     # Update the word if the count is greater than 30
-    # Update the word if the count is greater than 30
     if symbol_counters[predicted_class_label] >= 50:
         word += predicted_class_label
         # Check if the word contains 'mul' for multiplication
-        if 'mul' in word:
+        if '*' in word:
             # Extract numeric labels before and after 'mul'
-            parts = word.split('mul')
+            parts = word.split('*')
             if len(parts) == 2 and parts[0].isdigit() and parts[1].isdigit():
                 operand1 = int(parts[0])
                 operand2 = int(parts[1])
@@ -118,8 +117,8 @@ while True:
                 print("Invalid operation: Missing operand")
 
         # Check if the word contains 'add' for addition
-        elif 'add' in word:
-            parts = word.split('add')
+        elif '+' in word:
+            parts = word.split('+')
             if len(parts) == 2 and parts[0].isdigit() and parts[1].isdigit():
                 operand1 = int(parts[0])
                 operand2 = int(parts[1])
@@ -129,8 +128,8 @@ while True:
                 print("Invalid operation: Missing operand")
 
         # Check if the word contains 'div' for division
-        elif 'div' in word:
-            parts = word.split('div')
+        elif '/' in word:
+            parts = word.split('/')
             if len(parts) == 2 and parts[0].isdigit() and parts[1].isdigit() and int(parts[1]) != 0:
                 operand1 = int(parts[0])
                 operand2 = int(parts[1])
@@ -140,8 +139,8 @@ while True:
                 print("Invalid operation: Missing or zero divisor")
 
         # Check if the word contains 'sub' for subtraction
-        elif 'sub' in word:
-            parts = word.split('sub')
+        elif '-' in word:
+            parts = word.split('-')
             if len(parts) == 2 and parts[0].isdigit() and parts[1].isdigit():
                 operand1 = int(parts[0])
                 operand2 = int(parts[1])
